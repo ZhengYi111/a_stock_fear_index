@@ -8,7 +8,7 @@
 ---
 
 ## 🧩 项目简介
-构建自动化A股市场"恐慌指数"分析系统，通过富途牛牛API获取实时数据，结合AI模型进行舆情与情绪分析，计算每日"市场恐慌指数"并可视化展示趋势。
+构建自动化A股市场"恐慌指数"分析系统，通过Tushare API获取实时数据，结合AI模型分析恐慌原因，计算每日"市场恐慌指数"。
 
 ### 🔍 核心目标
 - 复现企业级Data Engineer + Data Scientist完整工作流
@@ -101,7 +101,7 @@ a_share_panic_index/
 ├── README.md
 
 └── .env.example
-复制
+
 ---
 
 ## 🧭 系统架构
@@ -126,31 +126,31 @@ subgraph Airflow Pipeline
 B --> C --> D --> E --> F
 
 end
-复制
+
 ---
 
 ## ⚙️ 环境配置
 
 ### 1️⃣ 创建环境
-bash
+
 
 conda create -n panic_index python=3.11 -y
 
 conda activate panic_index
 
 pip install -r requirements.txt
-复制
+
 ### 2️⃣ 数据库配置
-sql
+
 
 CREATE DATABASE a_stock_fear_index;
 
 CREATE USER panic_user WITH PASSWORD 'your_code';
 
 GRANT ALL PRIVILEGES ON DATABASE a_stock_fear_index TO panic_user;
-复制
+
 ### 3️⃣ 环境变量
-复制`.env.example` → `.env`并填写：
+`.env.example` → `.env`并填写：
 ini
 
 DB_HOST=localhost
@@ -162,17 +162,22 @@ DB_USER=panic_user
 Tushare_API_KEY=your_key
 
 OPENAI_API_KEY=your_key
-复制
+
 ---
 
-## 🧩 项目路线图
+## 🧩 项目路线图（Roadmap）
 
 | 阶段 | 内容 | 状态 |
 |------|------|------|
-| 阶段1 | 环境搭建与DB初始化 | ✅ 完成 |
-| 阶段2 | Tushare API数据采集 | ✅ 完成 |
-| 阶段3 | AI清洗+入库管道 | 🔄 进行中 |
-| 阶段4 | Airflow调度整合 | ⏳ 待实现 |
+| **阶段0** | **技术架构设计** | ✅ 完成 |
+| 阶段1 | 环境搭建、依赖管理、数据库设计 | ✅ 完成 |
+| 阶段2 | Tushare API 数据采集、ETL流程  |  🔄 进行中  |
+| 阶段3 | 数据清洗、质量验证、特征工程  |  🔄 进行中  |
+| 阶段4 | Airflow 调度整合 | ⏳ 待实现 |
+| 阶段5 | 恐慌指数计算逻辑 | ⏳ 待实现 |
+| 阶段6 | AI分析 | ⏳ 待实现 |
+| 阶段7 | 可视化 | ⏳ 待实现 |
+| 阶段8 | Docker 部署 & README完善 | ⏳ 待实现 |
 
 ---
 
