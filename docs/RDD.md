@@ -97,61 +97,72 @@ fear_index = (
     sentiment_score * 0.3 +            # 情绪因子 (权重30%)  
     abnormal_volume_ratio * 0.2        # 成交量异常因子 (权重20%)
 ) * 100
-指标说明：
+```
+## 指标说明
 
-normalized_volatility（标准化波动率，权重50%）
+### 🧮 normalized_volatility（标准化波动率，权重50%）
+- **数据来源：** Tushare Pro API 日线行情  
+- **金融意义：** 波动率是衡量市场恐慌的核心指标，价格波动越大，不确定性越高。  
 
-数据来源：Tushare Pro API 日线行情
+---
 
-金融意义：波动率是衡量市场恐慌的核心指标，价格波动越大，不确定性越高。
+### 😊 sentiment_score（情绪得分，权重30%）
+- **数据来源：** 舆情数据 + NLP分析  
+- **金融意义：** 反映市场舆论情绪波动方向，能捕捉投资者的恐慌或乐观程度。  
 
-sentiment_score（情绪得分，权重30%）
+---
 
-数据来源：舆情数据 + NLP分析
+### 📈 abnormal_volume_ratio（异常成交量比率，权重20%）
+- **数据来源：** Tushare 成交量数据 + 历史统计  
+- **金融意义：** 异常高成交量通常伴随恐慌性抛售或极端情绪，是市场情绪极端化的重要信号。  
 
-金融意义：反映市场舆论情绪波动方向。
+---
 
-abnormal_volume_ratio（异常成交量比率，权重20%）
+## (5) 可视化模块
 
-数据来源：Tushare 成交量数据 + 历史统计
+**文件路径：** `dashboard/app.py`  
+**框架：** Streamlit  
 
-金融意义：异常高成交量常伴随恐慌性抛售或极端情绪。
+**功能：**
+- 左侧表格：`pandas DataFrame` 显示（名称、代码、板块、价格、恐慌指数）  
+- 搜索框：输入股票代码过滤数据  
+- 折线图：`st.line_chart` 显示历史恐慌指数  
+- AI总结：从 `ai_summary` 表读取最新生成内容  
 
-(5) 可视化模块
+---
 
-文件路径： dashboard/app.py
-框架： Streamlit
+## 3. 数据库设计
 
-功能：
-左侧表格：pandas DataFrame 显示（名称、代码、板块、价格、恐慌指数）
+| 表名 | 说明 |
+|------|------|
+| raw_stock_data | 从 Tushare 抓取的原始行情 |
+| clean_stock_data | 清洗后的行情数据 |
+| news_sentiment | 舆情情绪数据（来自 DeepSeek 分析） |
+| fear_index | 综合计算后的恐慌指数 |
+| ai_summary | DeepSeek 生成的市场恐慌文字总结 |
 
-搜索框：输入股票代码过滤数据
+---
 
-折线图：st.line_chart 显示历史恐慌指数
+## 4. 技术栈说明
 
-AI总结：从 ai_summary 表读取最新生成内容
+| 模块 | 技术 | 理由 |
+|------|------|------|
+| 调度系统 | Airflow | 可视化任务编排、容错能力强 |
+| 数据采集 | requests + aiohttp + Tushare | 支持异步爬取与官方API调用 |
+| 清洗处理 | pandas + numpy | 高效ETL与数据计算 |
+| 数据库 | PostgreSQL | 稳定的结构化数据管理 |
+| NLP | DeepSeek API | 优秀的舆情理解与情感分析能力 |
+| Web框架 | Streamlit | 快速构建交互可视化页面 |
+| 日志监控 | logging + Airflow UI | 任务运行状态可追踪 |
+| 环境 | conda + .env | 环境隔离与敏感信息安全 |
 
-3. 数据库设计
-表名	说明
-raw_stock_data	从 Tushare 抓取的原始行情
-clean_stock_data	清洗后的行情数据
-news_sentiment	舆情情绪数据（来自 DeepSeek 分析）
-fear_index	综合计算后的恐慌指数
-ai_summary	DeepSeek 生成的市场恐慌文字总结
-4. 技术栈说明
-模块	技术	理由
-调度系统	Airflow	可视化任务编排、容错能力强
-数据采集	requests + aiohttp + Tushare	支持异步爬取与官方API调用
-清洗处理	pandas + numpy	高效ETL与数据计算
-数据库	PostgreSQL	稳定的结构化数据管理
-NLP	DeepSeek API	优秀的舆情理解与情感分析能力
-Web框架	Streamlit	快速构建交互可视化页面
-日志监控	logging + Airflow UI	任务运行状态可追踪
-环境	conda + .env	环境隔离与敏感信息安全
-5. Airflow DAG 任务流（核心）
+---
 
-文件路径： airflow_dags/fear_index_pipeline.py
+## 5. Airflow DAG 任务流（核心）
 
+**文件路径：** `airflow_dags/fear_index_pipeline.py`
+
+```python
 task_fetch = PythonOperator(task_id='fetch_data', python_callable=fetch_all_data)
 task_clean = PythonOperator(task_id='clean_data', python_callable=clean_data)
 task_nlp = PythonOperator(task_id='nlp_sentiment', python_callable=analyze_sentiment)
@@ -161,15 +172,14 @@ task_vis = PythonOperator(task_id='generate_ai_summary', python_callable=generat
 
 task_fetch >> task_clean >> task_nlp >> task_calc >> task_store >> task_vis
 
-6. 日志与错误处理
+## 6. 日志与错误处理
 
-所有任务日志统一写入：utils/logger.py
+- 所有任务日志统一写入：utils/logger.py
+- 任务失败时 Airflow 自动重试 1 次
+- 每日任务状态通过 Airflow 内置邮件通知发送
 
-任务失败时 Airflow 自动重试 1 次
+## 7. 项目结构
 
-每日任务状态通过 Airflow 内置邮件通知 发送
-
-7. 项目结构
 a_stock_fear_index/
 ├── airflow_dags/
 │   └── fear_index_pipeline.py
@@ -193,12 +203,9 @@ a_stock_fear_index/
 ├── docker-compose.yml
 └── README.md
 
-8. 未来扩展
+## 8. 未来扩展
 
-增加 板块级恐慌指数聚合
-
-接入 港股、美股市场
-
-引入 时间序列预测模型（Prophet / LSTM）
-
-云端部署（AWS Lambda + RDS + Streamlit Cloud）
+1.增加板块级恐慌指数聚合
+2.接入港股、美股市场
+3.引入时间序列预测模型（Prophet / LSTM）
+4.云端部署：AWS Lambda + RDS + Streamlit Cloud
