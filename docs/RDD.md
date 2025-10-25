@@ -2,42 +2,42 @@
 
 **项目名称：** A股恐慌指数系统  
 **版本：** v1.0  
-**作者：** Yi Zheng  
-**目标读者：** 技术团队 / 面试官  
+**作者：** Vive
 
 ---
 
 ## 1. 系统架构总览
                       ┌──────────────────────┐
-                      │        Airflow        │
-                      │  fetch → clean → NLP  │
-                      │  → calc → store → vis │
+                      │        Airflow       │
+                      │  fetch → clean → NLP │
+                      │  → calc → store → vis│
                       └──────────────────────┘
                                    │
                                    ▼
       ┌─────────────────────────────────────────────┐
       │                 Data Pipeline               │
-      │ 1. fetch_data.py  | 调 Tushare、爬舆情网站 │
-      │ 2. clean_data.py  | 数据清洗 & 格式化      │
+      │ 1. fetch_data.py  | 调 Tushare、RSS          │
+      │ 2. clean_data.py  | 数据清洗 & 格式化         │
       │ 3. store_data.py  | 入 PostgreSQL           │
       └─────────────────────────────────────────────┘
                                    │
                                    ▼
                ┌──────────────────────────────┐
                │     PostgreSQL 数据库         │
-               │ raw_data / clean_data / fear_index / news_sentiment │
+               │ raw_data / clean_data /      │
+               │  fear_index / news_sentiment │
                └──────────────────────────────┘
                                    │
                                    ▼
                ┌──────────────────────────────┐
-               │ NLP 模块（DeepSeek API）     │
-               │ 舆情分析 + 情绪量化 + 关键字抽取 │
+               │ DeepSeek API                 │
+               │ 恐慌原因分析                   │
                └──────────────────────────────┘
                                    │
                                    ▼
                ┌──────────────────────────────┐
                │ Streamlit Dashboard          │
-               │ 左表格 + 搜索 + 折线 + AI总结 │
+               │ 左表格 + 右搜索 + 折线 + AI总结 │
                └──────────────────────────────┘
 
 ---
@@ -51,7 +51,7 @@
 | 来源 | 技术 | 数据类型 |
 |------|------|-----------|
 | Tushare | API | A股每日行情数据（open, close, high, low, volume）；北向资金每日流入流出数据 |
-| 新闻网站：东方财富网 | requests + BeautifulSoup | 财经新闻标题、正文、发布时间 |
+| 新闻网站：东方财富网 | rss | 财经新闻标题、正文、发布时间 |
 
 ---
 
@@ -75,10 +75,10 @@
 
 **功能：**
 - 传入清洗后的舆情文本  
-- 调用 **DeepSeek API**，返回：
+- 使用 ​本地 NLP 方法​ 进行情感分析，返回：
   - 情绪倾向（正向 / 负向 / 中性）
-  - 恐慌关键词列表
-  - 恐慌度评分（0–1）  
+  - 恐慌关键词列表（如“暴跌”“崩盘”“危机”等）
+  - 恐慌度评分（0–1，数值越高代表恐慌情绪越强）
 - 输出结果存入数据库表 **news_sentiment**
 
 ---
@@ -134,9 +134,9 @@ fear_index = (
 
 | 表名 | 说明 |
 |------|------|
-| raw_stock_data | 从 Tushare 抓取的原始行情 |
+| raw_stock_data | 从 Tushare 和rss抓取的原始行情 |
 | clean_stock_data | 清洗后的行情数据 |
-| news_sentiment | 舆情情绪数据（来自 DeepSeek 分析） |
+| news_sentiment | 舆情情绪数据（nlp） |
 | fear_index | 综合计算后的恐慌指数 |
 | ai_summary | DeepSeek 生成的市场恐慌文字总结 |
 
@@ -147,10 +147,11 @@ fear_index = (
 | 模块 | 技术 | 理由 |
 |------|------|------|
 | 调度系统 | Airflow | 可视化任务编排、容错能力强 |
-| 数据采集 | requests + aiohttp + Tushare | 支持异步爬取与官方API调用 |
+| 数据采集 | rss + Tushare | 支持异步爬取与官方API调用 |
 | 清洗处理 | pandas + numpy | 高效ETL与数据计算 |
 | 数据库 | PostgreSQL | 稳定的结构化数据管理 |
-| NLP | DeepSeek API | 优秀的舆情理解与情感分析能力 |
+| NLP | PaddleNLP | 情感分析能力 |
+| NLP | DeepSeek API | 舆情理解 |
 | Web框架 | Streamlit | 快速构建交互可视化页面 |
 | 日志监控 | logging + Airflow UI | 任务运行状态可追踪 |
 | 环境 | conda + .env | 环境隔离与敏感信息安全 |
