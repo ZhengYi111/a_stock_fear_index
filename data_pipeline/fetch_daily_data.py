@@ -21,7 +21,7 @@ def fetch_daily_data(ts_codes=None):
     """
 
     end_date = datetime.now().strftime("%Y%m%d")
-    start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
+    start_date = (datetime.now() - timedelta(days=30)).strftime("%Y%m%d")
 
     # 确定要获取的股票代码列表
     if ts_codes is None:

@@ -12,7 +12,7 @@ from utils.logger import get_logger # 日志记录
 
 #获取数据
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from data_pipeline.fetch_index_daily import fetch_daily_data
+from data_pipeline.fetch_daily_data import fetch_daily_data
 
 
 # 加载环境变量
@@ -20,7 +20,7 @@ load_dotenv()
 
 # 初始化日志
 config = load_env()
-logger = get_logger(__name__, config.get("LOG_PATH", "logs/app.log"))
+logger = get_logger(__name__, config["LOG_PATH"])#自动获取当前模块的名称，创建一个与当前模块关联的日志记录器
 
 # 获取数据库配置
 DB_NAME = os.getenv("DB_NAME")
@@ -50,16 +50,7 @@ def store_stock_daily(df, table_name="ods_stock_daily"):
                 change, pct_chg, vol, amount
             ) VALUES %s
             ON CONFLICT (ts_code, trade_date)
-            DO UPDATE SET
-                open = EXCLUDED.open,
-                high = EXCLUDED.high,
-                low = EXCLUDED.low,
-                close = EXCLUDED.close,
-                pre_close = EXCLUDED.pre_close,
-                change = EXCLUDED.change,
-                pct_chg = EXCLUDED.pct_chg,
-                vol = EXCLUDED.vol,
-                amount = EXCLUDED.amount;
+            DO NOTHING
         """
 
         execute_values(cur, insert_query, records)
