@@ -20,7 +20,7 @@ def fetch_north_moneyflow(start_date="20240101", end_date="20260101"):
         df["north_money"] = df["north_money"].astype(float)
         path = "data/raw/north_moneyflow.csv"
         df.to_csv(path, index=False)
-        logger.info(f"北向资金数据保存成功，共 {len(df)} 行。路径：{path}")
+        logger.info(f"北向资金数据保存成功，共 {len(df)} 行。")
         print(f"✅ 北向资金数据保存成功，共 {len(df)} 行。")
         return df
     except Exception as e:

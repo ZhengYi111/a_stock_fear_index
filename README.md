@@ -1,4 +1,4 @@
-# 📈 A股恐慌指数（A-share Panic Index）
+# 📈 A股恐慌指数（A-share Fear Index）
 
 ## 🧠 项目概述
 **端到端AI驱动的金融数据管道**  
